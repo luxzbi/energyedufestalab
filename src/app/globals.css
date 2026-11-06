@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-sunken: #f3f2ee;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #6c6b66;
+  --line: #e1e0d9;
+  --line-strong: #c3c2b7;
+  --axis: #898781;
+  --focus: #2a78d6;
+  --danger: #b42323;
+  --caution: #8a5a00;
+  --solid-bg: #0b0b0b;
+  --solid-fg: #fcfcfb;
+
+  /* 시나리오: 쿨루프, 태양광, 결합 */
+  --series-cool: #2a78d6;
+  --series-solar: #eb6834;
+  --series-combined: #1baf7a;
+  /* 비용 부담 주체 */
+  --series-municipal: #6250d6;
+  --series-owner: #eda100;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-sunken: #232322;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --ink-3: #a3a29a;
+    --line: #2c2c2a;
+    --line-strong: #4a4a46;
+    --axis: #898781;
+    --focus: #5598e7;
+    --danger: #f08080;
+    --caution: #e0b050;
+    --solid-bg: #f0efec;
+    --solid-fg: #1a1a19;
+
+    --series-cool: #3987e5;
+    --series-solar: #d95926;
+    --series-combined: #199e70;
+    --series-municipal: #9085e9;
+    --series-owner: #c98500;
+  }
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-focus: var(--focus);
+  --color-danger: var(--danger);
+  --color-caution: var(--caution);
+  --color-solid: var(--solid-bg);
+  --color-on-solid: var(--solid-fg);
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Malgun Gothic",
+    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  /* 한국어가 낱말 중간에서 끊기지 않게 합니다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
