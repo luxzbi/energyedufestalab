@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EMISSION_FACTOR_EXPLANATION, LIMITATIONS } from "@/lib/assumptions";
 import { buildFormulaSteps } from "@/lib/formulas";
 import {
   SCENARIO_IDS,
@@ -8,14 +9,53 @@ import {
   type ScenarioResults,
 } from "@/lib/model";
 
-const LIMITS = [
-  "냉방 절감량이 시공 면적에 정확히 비례한다고 단순화했습니다. 실제 효과는 단열, 층수, 설비에 따라 다릅니다.",
-  "패널 그늘이 지붕 온도를 낮추는 효과와, 쿨루프가 패널 온도나 양면 패널 발전량에 미치는 영향은 넣지 않았습니다.",
-  "쿨루프가 겨울 난방 전력을 늘릴 수 있는 효과(겨울철 불이익)를 넣지 않았습니다.",
-  "발전한 전기를 공장이 쓰는지 전력망으로 보내는지 구분하지 않고, 모두 전력망 전기를 대체한다고 가정합니다.",
-  "배출계수는 전력망 평균값입니다. 실제로 줄어드는 발전원의 배출과는 다를 수 있습니다.",
-  "설치비만 다룹니다. 유지보수, 패널 교체, 구조 보강, 전기요금 절감, 수익 같은 경제성은 계산하지 않습니다.",
-];
+/** 설치 유형 설명. 같은 면적에 함께 설치하는 것이 불가능하다는 오해를 막습니다. */
+export function InstallationTypes() {
+  return (
+    <div className="space-y-2 text-sm leading-6">
+      <ul className="list-disc space-y-1 pl-5 text-ink-2">
+        <li>
+          <strong className="font-semibold text-ink">A. 분리 설치형</strong>: 패널 설치 영역에는 시공하지
+          않고 나머지 면적에만 쿨루프를 시공합니다.
+        </li>
+        <li>
+          <strong className="font-semibold text-ink">B. 전체 쿨루프 + 태양광형</strong>: 지붕 전체에 쿨루프를
+          시공하고 일부 위에 패널을 놓습니다. 시공비는 전체 면적으로 계산하지만, 패널 하부의 냉방 효과는
+          미산정합니다.
+        </li>
+        <li>
+          <strong className="font-semibold text-ink">C. 쿨루프 단독, 태양광 단독</strong>: 각 기술의 독립적인
+          효과를 비교합니다.
+        </li>
+      </ul>
+      <p className="text-ink-2">
+        같은 면적에 쿨루프와 태양광을 함께 설치하는 것은 물리적으로 가능합니다. 다만 패널 아래 지붕은 그늘이
+        지고 패널과 지붕 사이의 공기 흐름과 복사가 달라져, 노출된 지붕과 같은 효과를 낸다고 볼 수 없습니다. 고반사
+        지붕에 패널을 놓았을 때 실내 열 획득이 10.8% 늘었다는 중국 우한의 수치 모델 연구도 있어, 이 도구는 패널
+        하부 효과의 크기와 방향을 단정하지 않고 미산정합니다. 미산정은 효과가 0이라는 뜻이 아닙니다.{" "}
+        <a
+          className="text-ink underline underline-offset-2"
+          href="https://orbit.dtu.dk/en/publications/shading-effect-and-energy-saving-potential-of-rooftop-photovoltai/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ma 외, Solar Energy (2023)
+          <span className="sr-only"> (새 창, 외부 사이트)</span>
+        </a>
+      </p>
+    </div>
+  );
+}
+
+export function EmissionFactorNotes() {
+  return (
+    <ul className="list-disc space-y-1 pl-5 text-sm leading-6 text-ink-2">
+      {EMISSION_FACTOR_EXPLANATION.map((text) => (
+        <li key={text}>{text}</li>
+      ))}
+    </ul>
+  );
+}
 
 export function FormulaPanel({
   inputs,
@@ -24,13 +64,13 @@ export function FormulaPanel({
   inputs: ModelInputs;
   results: ScenarioResults;
 }) {
-  const [scenario, setScenario] = useState<ScenarioId>("combined");
+  const [scenario, setScenario] = useState<ScenarioId>("combinedSeparate");
   const steps = buildFormulaSteps(inputs, scenario, results[scenario]);
 
   return (
     <div>
       <fieldset className="mb-4">
-        <legend className="mb-1.5 text-sm font-medium">풀이를 볼 시나리오</legend>
+        <legend className="mb-1.5 text-sm font-medium">풀이를 볼 설치 유형</legend>
         <div className="flex flex-wrap gap-1.5">
           {SCENARIO_IDS.map((id) => (
             <label
@@ -72,7 +112,7 @@ export function FormulaPanel({
 
       <h3 className="mt-5 text-sm font-semibold">이 모델이 계산하지 않는 것</h3>
       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-ink-2">
-        {LIMITS.map((limit) => (
+        {LIMITATIONS.map((limit) => (
           <li key={limit}>{limit}</li>
         ))}
       </ul>

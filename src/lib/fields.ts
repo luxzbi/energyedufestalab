@@ -1,12 +1,21 @@
 import type { ModelInputs } from "./model";
 
 /** 값의 성격. 출처가 있는 값과 임의로 정한 값을 화면에서 구분하는 데 씁니다. */
-export type EvidenceLevel = "reference" | "weak" | "arbitrary";
+export type EvidenceLevel =
+  | "reference"
+  | "unverified"
+  | "weak"
+  | "proposal"
+  | "arbitrary"
+  | "notSet";
 
 export const EVIDENCE_LABELS: Record<EvidenceLevel, string> = {
   reference: "참고 출처 있음",
+  unverified: "검증 전 참고값",
   weak: "근거 약함",
+  proposal: "정책 제안값",
   arbitrary: "임의 가정",
+  notSet: "미입력 시 미산정",
 };
 
 export interface SourceLink {
@@ -25,9 +34,11 @@ export interface FieldSpec {
   /** min 값 자체를 허용하지 않을 때 true (예: 0으로 두면 의미 없는 값) */
   exclusiveMin?: boolean;
   integer?: boolean;
+  /** 비워 둘 수 있는 값. 비우면 null이 됩니다. */
+  optional?: boolean;
   /** 벗어나면 계산은 하되 경고하는 일반 범위 */
   typical?: [number, number];
-  group: "규모" | "태양광" | "냉방 (가정)" | "비용" | "탄소";
+  group: "규모" | "태양광" | "냉방 (가정)" | "비용" | "전력 흐름·탄소";
   evidence: EvidenceLevel;
   /** 이 기본값을 왜 골랐고 어디까지 믿을 수 있는지 */
   note: string;
@@ -45,7 +56,7 @@ export const FIELD_SPECS: FieldSpec[] = [
     integer: true,
     group: "규모",
     evidence: "arbitrary",
-    note: "계산을 보여 주기 위한 임의의 값입니다. 대전 산업단지의 실제 공장 수가 아닙니다.",
+    note: "계산을 보여 주기 위한 임의의 값입니다. 대전 대화동 산업단지의 실제 공장 수가 아닙니다.",
   },
   {
     key: "avgRoofAreaM2",
@@ -92,7 +103,7 @@ export const FIELD_SPECS: FieldSpec[] = [
   },
   {
     key: "solarYieldKwhPerKw",
-    label: "연간 발전량",
+    label: "연간 태양광 발전량",
     unit: "kWh/kW·년",
     defaultValue: "1314",
     min: 0,
@@ -105,7 +116,7 @@ export const FIELD_SPECS: FieldSpec[] = [
     note: "이용률 15%를 환산한 값입니다(8,760시간 × 15% = 1,314). 정부 자료의 2016~2018년 이용률은 14.9~16.0%였습니다. 전국 기준이며 대전 값이 아닙니다. 분기 통계(2026년 1분기 14.52%, 2분기 19.18%)는 계절 영향이 커서 연평균으로 쓰면 안 됩니다.",
     sources: [
       {
-        label: "산업통상자원부 해명자료(2019)",
+        label: "산업통상자원부 보도해명자료(2019-08-12)",
         url: "https://www.motir.go.kr/attach/down/095a2dda9c864e1d90d751f7668a1117/8ebc03e2a86f86654463a713c6cb2170",
       },
       {
@@ -187,32 +198,83 @@ export const FIELD_SPECS: FieldSpec[] = [
   },
   {
     key: "subsidyPct",
-    label: "지자체 보조율",
+    label: "대전시 지원율",
     unit: "%",
-    defaultValue: "50",
+    defaultValue: "70",
     min: 0,
     max: 100,
     group: "비용",
+    evidence: "proposal",
+    note: "이 연구의 정책 제안값이며 실제 운영 중인 대전시 제도가 아닙니다. 쿨루프와 태양광에 같은 비율을 적용합니다. 지원율이 높아도 공장이 참여한다는 보장은 없습니다. 2024년 산업단지공단 조사에서 응답 기업 500곳의 91.6%가 태양광 설치 계획이 없었고, 60.5%는 지원을 늘려도 설치 의향이 없다고 답했습니다. 이 모델에는 참여 의사가 들어 있지 않습니다.",
+    sources: [
+      {
+        label: "아시아경제: 산업단지 지붕 태양광 수요조사(2024)",
+        url: "https://www.asiae.co.kr/en/article/2024100709355316824",
+      },
+    ],
+  },
+  {
+    key: "selfConsumptionPct",
+    label: "태양광 자가소비 비율",
+    unit: "%",
+    defaultValue: "70",
+    min: 0,
+    max: 100,
+    group: "전력 흐름·탄소",
     evidence: "arbitrary",
-    note: "제안 정책의 조절 변수이며 현행 제도의 보조율이 아닙니다. 쿨루프와 태양광에 같은 비율을 적용합니다.",
+    note: "한국 공장의 자가소비 비율 통계를 찾지 못해 임의로 둔 값입니다. 조업 시간과 주말 휴무, 공장 부하에 따라 크게 달라지므로 시간별 전력 자료로 확인해야 합니다. 스페인 공장 두 곳에서 90% 사례가 보고됐지만 한국에 그대로 적용할 수 없습니다.",
+    sources: [
+      {
+        label: "Photovoltaic Self-Consumption in Industrial Cooling and Refrigeration",
+        url: "https://ruja.ujaen.es/items/1e36704f-e14f-4436-82c8-d1811f2eaa54/full",
+      },
+    ],
+  },
+  {
+    key: "exportCreditPct",
+    label: "역송분 감축 인정 비율",
+    unit: "%",
+    defaultValue: "100",
+    min: 0,
+    max: 100,
+    group: "전력 흐름·탄소",
+    evidence: "arbitrary",
+    note: "역송 전력도 전력망의 다른 발전을 대체한다고 보면 100%입니다. 다만 역송분의 감축 실적을 다른 주체가 사 가면 이 사업의 실적으로 다시 세면 안 되므로, 그 경우 낮춰서 비교합니다. 어떤 기준을 쓸지는 인증 제도를 확인해야 합니다.",
   },
   {
     key: "emissionFactorTPerMwh",
-    label: "전력 배출계수",
+    label: "평균 전력 배출계수",
     unit: "tCO2eq/MWh",
     defaultValue: "0.4173",
     min: 0,
     max: 2,
     typical: [0.2, 0.7],
-    group: "탄소",
-    evidence: "reference",
-    note: "기후에너지환경부가 2025년 12월 18일 공표한 2023년도 값으로 보도됐습니다. 언론 기사로만 확인했고 공식 원문은 확인하지 못했으니 인용 전에 대조하세요. 매년 갱신될 예정이라 더 새로운 값이 있을 수 있습니다.",
+    group: "전력 흐름·탄소",
+    evidence: "unverified",
+    note: "기후에너지환경부가 2025년 12월 공표한 2023년도 값으로, 언론 보도 2곳의 수치가 일치합니다. 부처 게시판 원문은 열리지 않아 확인하지 못했으니 인용 전에 대조하세요. 갱신 주기가 1년으로 바뀌어 더 새로운 값이 있을 수 있습니다. 전력망 평균값입니다.",
     sources: [
+      {
+        label: "에너지데일리(2025-12-18)",
+        url: "https://www.energydaily.co.kr/news/articleView.html?idxno=163115",
+      },
       {
         label: "쿠키뉴스(2025-12-18)",
         url: "https://www.kukinews.com/article/view/kuk202512180131",
       },
     ],
+  },
+  {
+    key: "marginalEmissionFactorTPerMwh",
+    label: "비교용 한계 배출계수",
+    unit: "tCO2eq/MWh",
+    defaultValue: "",
+    min: 0,
+    max: 2,
+    optional: true,
+    typical: [0.2, 1.2],
+    group: "전력 흐름·탄소",
+    evidence: "notSet",
+    note: "믿을 만한 한국 값을 찾지 못해 기본값을 비워 두었습니다. 값을 지어내지 않기 위해서입니다. 자료를 찾으면 입력해 평균 계수 결과와 비교하세요. 비워 두면 결과에 미산정으로 표시됩니다.",
   },
 ];
 
@@ -243,12 +305,13 @@ export function parseNumber(raw: string): number | null {
 export function validateInputs(raw: RawInputs): ValidationResult {
   const errors: ValidationResult["errors"] = {};
   const warnings: ValidationResult["warnings"] = {};
-  const values = {} as ModelInputs;
+  const values = {} as Record<keyof ModelInputs, number | null>;
 
   for (const field of FIELD_SPECS) {
     const text = raw[field.key] ?? "";
     if (text.trim() === "") {
-      errors[field.key] = "값을 입력하세요.";
+      if (field.optional) values[field.key] = null;
+      else errors[field.key] = "값을 입력하세요.";
       continue;
     }
 
@@ -280,8 +343,19 @@ export function validateInputs(raw: RawInputs): ValidationResult {
   }
 
   return {
-    values: Object.keys(errors).length === 0 ? values : null,
+    values:
+      Object.keys(errors).length === 0 ? (values as unknown as ModelInputs) : null,
     errors,
     warnings,
   };
+}
+
+/** 숫자 입력값을 입력칸용 문자열로 되돌립니다. 실행 기록 복원에 씁니다. */
+export function toRawInputs(inputs: ModelInputs): RawInputs {
+  return Object.fromEntries(
+    FIELD_SPECS.map((field) => {
+      const value = inputs[field.key];
+      return [field.key, value === null ? "" : String(value)];
+    }),
+  ) as RawInputs;
 }

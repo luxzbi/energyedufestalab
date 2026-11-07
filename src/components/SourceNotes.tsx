@@ -9,11 +9,11 @@ export function SourceNotes() {
             <h3 className="text-sm font-semibold">
               {field.label}{" "}
               <span className="font-normal text-ink-2 tabular-nums">
-                기본값{" "}
-                {Number(field.defaultValue).toLocaleString("ko-KR", {
-                  maximumFractionDigits: 6,
-                })}{" "}
-                {field.unit}
+                {field.defaultValue === ""
+                  ? "기본값 없음 (비워 두면 미산정)"
+                  : `기본값 ${Number(field.defaultValue).toLocaleString("ko-KR", {
+                      maximumFractionDigits: 6,
+                    })} ${field.unit}`}
               </span>
             </h3>
             <span className="text-xs text-ink-3">{EVIDENCE_LABELS[field.evidence]}</span>

@@ -17,13 +17,28 @@
   --solid-bg: #0b0b0b;
   --solid-fg: #fcfcfb;
 
-  /* 시나리오: 쿨루프, 태양광, 결합 */
+  /* 설치 유형: C-1 쿨루프, C-2 태양광, A 분리, B 전체 시공 */
   --series-cool: #2a78d6;
   --series-solar: #eb6834;
   --series-combined: #1baf7a;
+  --series-fullcoat: #eda100;
   /* 비용 부담 주체 */
   --series-municipal: #6250d6;
-  --series-owner: #eda100;
+  --series-owner: #e87ba4;
+  /* 태양광 전력 흐름 */
+  --series-self: #eb6834;
+  --series-export: #6250d6;
+  /* 지원율 30 → 90%: 값이 커질수록 짙어지는 순서형 색 */
+  --rate-1: #86b6ef;
+  --rate-2: #3987e5;
+  --rate-3: #1c5cab;
+  --rate-4: #0d366b;
+  /* 실측 그래프 묶음 */
+  --measure-1: #2a78d6;
+  --measure-2: #eb6834;
+  --measure-3: #1baf7a;
+  --measure-4: #eda100;
+  --measure-5: #e87ba4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -47,8 +62,20 @@
     --series-cool: #3987e5;
     --series-solar: #d95926;
     --series-combined: #199e70;
+    --series-fullcoat: #c98500;
     --series-municipal: #9085e9;
-    --series-owner: #c98500;
+    --series-owner: #d55181;
+    --series-self: #d95926;
+    --series-export: #9085e9;
+    --rate-1: #184f95;
+    --rate-2: #2a78d6;
+    --rate-3: #6da7ec;
+    --rate-4: #b7d3f6;
+    --measure-1: #3987e5;
+    --measure-2: #d95926;
+    --measure-3: #199e70;
+    --measure-4: #c98500;
+    --measure-5: #d55181;
   }
 }
 
@@ -79,7 +106,7 @@ body {
   overflow-wrap: anywhere;
 }
 
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }

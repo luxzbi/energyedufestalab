@@ -5,6 +5,7 @@ import {
   type RawInputs,
   type ValidationResult,
 } from "@/lib/fields";
+import { SCENARIO_IDS, SCENARIO_LABELS, type ScenarioId } from "@/lib/model";
 import { BUTTON_SECONDARY, INPUT_CLASS } from "./ui";
 
 const GROUPS: FieldSpec["group"][] = [
@@ -12,18 +13,22 @@ const GROUPS: FieldSpec["group"][] = [
   "태양광",
   "냉방 (가정)",
   "비용",
-  "탄소",
+  "전력 흐름·탄소",
 ];
 
 export function InputPanel({
   raw,
   validation,
+  scenario,
+  onScenarioChange,
   onChange,
   onReset,
   resetMessage,
 }: {
   raw: RawInputs;
   validation: ValidationResult;
+  scenario: ScenarioId;
+  onScenarioChange: (scenario: ScenarioId) => void;
   onChange: (key: keyof RawInputs, value: string) => void;
   onReset: () => void;
   resetMessage: string;
@@ -49,6 +54,27 @@ export function InputPanel({
       <p role="status" className="min-h-5 text-xs text-ink-2">
         {resetMessage}
       </p>
+
+      <div className="mt-2">
+        <label htmlFor="analysis-scenario" className="mb-1 block text-sm font-semibold">
+          분석할 설치 유형
+        </label>
+        <select
+          id="analysis-scenario"
+          className={INPUT_CLASS}
+          value={scenario}
+          onChange={(event) => onScenarioChange(event.target.value as ScenarioId)}
+        >
+          {SCENARIO_IDS.map((id) => (
+            <option key={id} value={id}>
+              {SCENARIO_LABELS[id]}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs leading-5 text-ink-2">
+          지원율·예산, 최적화, 민감도 분석에 적용합니다.
+        </p>
+      </div>
 
       {GROUPS.map((group) => (
         <fieldset key={group} className="mt-3 border-t border-line pt-3">
@@ -104,6 +130,7 @@ function Field({
           type="text"
           inputMode="decimal"
           autoComplete="off"
+          placeholder={field.optional ? "비워 두면 미산정" : undefined}
           value={value}
           aria-invalid={Boolean(error)}
           aria-describedby={error || warning ? messageId : undefined}

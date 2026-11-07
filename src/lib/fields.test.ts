@@ -71,10 +71,25 @@ describe("출처 표시 규칙", () => {
     }
   });
 
-  it("'참고 출처 있음' 또는 '근거 약함' 값은 링크를 가진다", () => {
-    for (const field of FIELD_SPECS.filter((f) => f.evidence !== "arbitrary")) {
+  it("출처가 있다고 표시한 값은 링크를 가진다", () => {
+    for (const field of FIELD_SPECS.filter((f) =>
+      ["reference", "unverified", "weak"].includes(f.evidence),
+    )) {
       expect(field.sources?.length).toBeGreaterThan(0);
     }
+  });
+
+  it("평균 배출계수는 검증 전 참고값, 지원율은 정책 제안값으로 표시한다", () => {
+    expect(FIELD_SPECS.find((f) => f.key === "emissionFactorTPerMwh")?.evidence).toBe("unverified");
+    const subsidy = FIELD_SPECS.find((f) => f.key === "subsidyPct");
+    expect(subsidy?.evidence).toBe("proposal");
+    expect(subsidy?.note).toContain("실제 운영 중인 대전시 제도가 아닙니다");
+  });
+
+  it("선택 입력은 비워 둘 수 있고, 잘못된 값은 거부한다", () => {
+    expect(validateInputs(withValue("marginalEmissionFactorTPerMwh", "")).values?.marginalEmissionFactorTPerMwh).toBeNull();
+    expect(validateInputs(withValue("marginalEmissionFactorTPerMwh", "abc")).values).toBeNull();
+    expect(validateInputs(withValue("marginalEmissionFactorTPerMwh", "0.6")).values?.marginalEmissionFactorTPerMwh).toBe(0.6);
   });
 
   it("냉방 기준값과 절감률은 임의 가정으로 표시된다", () => {
